@@ -23,7 +23,6 @@ app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: false}));
 app.use(passport.initialize());
-app.use(passport.session());
 app.use('/auth', auth)
 
 // SET UP PASSPORT
@@ -67,8 +66,9 @@ passport.use( new JWTStrategy({
         secretOrKey: 'test'
     },
     function(jwtPayload, cb) {
-        return User.findById(jwtPayload.id)
+        return User.findById(jwtPayload.user._id)
             .then(user => {
+                console.log(jwtPayload)
                 return cb(null, user)
             })
             .catch(err => {
