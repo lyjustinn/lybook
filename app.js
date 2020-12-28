@@ -138,6 +138,7 @@ app.post('/item/new', async (req, res)=> {
 
         try {
             await page.goto(link)
+            await browser.close()
         } catch (error) {
             console.error(error)
             return res.status(404).send('bad link')
@@ -147,9 +148,10 @@ app.post('/item/new', async (req, res)=> {
             name: name,
             ASIN: asin,
             link: link
-        }).save((error)=> {
+        }).save(async (error, doc)=> {
             if (error) return next(err)
-    
+            console.log(doc)
+            await scraper.scrapeItem(doc)
             res.send('item added')
         })
 
@@ -159,7 +161,7 @@ app.post('/item/new', async (req, res)=> {
 })
 
 app.get('/scrapers',async (req,res)=> {
-    await scraper()
+    await scraper.scraper()
     res.send('done')
 })
 
