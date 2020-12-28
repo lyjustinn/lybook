@@ -30,7 +30,7 @@ const scrapeItem = async (item)=> {
             console.log('scrape failed')
             const current = new Date()
             item.status = `No price available. Last checked: ${current}`
-            item.save( err => {
+            await item.save( err => {
                 if (err) throw 'error scraping item'
             
                 return "No price available currently for this item"

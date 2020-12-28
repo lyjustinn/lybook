@@ -10,7 +10,7 @@ const Item = mongoose.model(
         image: { type:String, required: true},
         date: [{ type: Date, required: true, default: Date.now()}],
         price: [{ type: Number, required: true}], 
-        status: [{type: String}]
+        status: {type: String}
     })
 );
 

@@ -21,8 +21,18 @@ const auth = require('./routes/auth')
 const user = require('./routes/userRoutes')
 const items = require('./routes/itemRoutes')
 
-// SET UP MIDDLEWARE
-app.use(cors())
+// SET UP CORS 
+
+const corsOptions = {
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'PUT', 'POST', 'DELETE'],
+    credentials: true,
+    allowedHeaders: ['Content-type', 'Authorization'],
+}
+
+app.use(cors(corsOptions))
+
+// SET UP OTHER MIDDLEWARE
 app.use(express.json())
 app.use(express.urlencoded({ extended: false}));
 app.use(passport.initialize());

@@ -7,11 +7,14 @@ const scraper = require('../scraper/scraper')
 const router = express.Router()
 
 router.post('/newItem', async (req, res, next)=> {
-    if (!req.body) return res.status(400).send(`No item information sent`)
-
     const {asin, name, link} = req.body
-
     console.log({asin, name, link})
+
+    if (asin === undefined
+        || name === undefined
+        || link === undefined) 
+        
+        return res.status(400).send(`No item information sent`)
 
     const browser = await puppeteer.launch()
     const page = await browser.newPage()
