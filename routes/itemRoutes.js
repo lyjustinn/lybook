@@ -6,6 +6,21 @@ const scraper = require('../scraper/scraper')
 
 const router = express.Router()
 
+router.get('/:id', async (req, res, next)=> {
+    Item.findById(req.params.id)
+        .exec( (err, itemMatch)=> {
+            if (err) return next(err)
+
+            if (!itemMatch) return res.status(404).send("Couldn't find the item you were looking for")
+        })
+        .catch( err => {
+            console.error(err)
+            next(err)
+        })
+
+    res.send('request recieved')
+})
+
 router.post('/newItem', async (req, res, next)=> {
     const {asin, name, link} = req.body
     console.log({asin, name, link})
@@ -50,6 +65,9 @@ router.post('/newItem', async (req, res, next)=> {
             await scraper.scrapeItem(doc)
             return res.json({item: doc, msg: "Created a new item, initializing history..."})
         })
+    }).catch((err)=> {
+        console.error(err)
+        next(err)
     }) 
 })
 

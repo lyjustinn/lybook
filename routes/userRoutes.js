@@ -17,7 +17,10 @@ router.get("/dashboard/", (req, res)=> {
 
             console.log(user)
 
-            res.json(user)
+            res.send(user.items)
+        }).catch( err => {
+            console.error(err)
+            next(err)
         })
 
 })
@@ -42,8 +45,11 @@ router.put("/addItem/", (req, res, next)=> {
 
                 return res.send('added the item')
             })
-        }
-    )        
+        })
+        .catch( err => {
+            console.error(err)
+            next(err)
+        })        
 })
 
 router.put("/removeItem/", (req, res)=> {
