@@ -2,6 +2,7 @@ const express = require('express')
 const puppeteer = require('puppeteer')
 const CronJob = require('cron').CronJob
 const Item = require('../models/item')
+const User = require('../models/user')
 
 const router = express.Router()
 
@@ -19,7 +20,9 @@ const router = express.Router()
 //     res.send("no hello")
 // })
 
-router.post('/newItem', async (req, res)=> {
+router.post('/newItem', async (req, res, next)=> {
+    if (!req.body) return res.status(400).send(`No item information sent`)
+
     const {asin, name, link} = req.body
 
     console.log({asin, name, link})
@@ -53,6 +56,29 @@ router.post('/newItem', async (req, res)=> {
             return res.json({item: doc, msg: "Created a new item, initializing history..."})
         })
     }) 
+})
+
+router.delete('/deleteItem', async (req, res, next)=> {
+    if (!req.body.itemid) return res.status(400).send(`No item id sent`)
+
+    Promise.all([
+        User.findOne({ items: req.body.itemid}),
+        Item.findById(req.body.itemid)
+    ]).then ( async ([userMatch, itemMatch])=> {
+        console.log({userMatch, itemMatch})
+
+        if (!itemMatch) {
+            return res.status(406).send(`Couldn't find an item with id ${req.body.itemid}`)
+        }
+        if (!userMatch) {
+            await Item.deleteOne({_id: req.body.itemid})
+            return res.send(`Deleted item with id ${req.body.itemid}`)
+        }
+
+        return res.status(406).send('This item is currently being tracked by one or more users, delete request refused')
+    }).catch ((err) =>{
+        next(err)
+    })
 })
 
 module.exports = router

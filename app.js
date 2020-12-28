@@ -120,46 +120,6 @@ app.get('/tracker', async (req, res)=> {
     res.send('tracking started')
 })
 
-app.post('/item/new', async (req, res)=> {
-
-    const {asin, name, link} = req.body
-
-    console.log({asin, name, link})
-
-    const browser = await puppeteer.launch()
-    const page = await browser.newPage()
-
-    await Item.findOne({ASIN: asin}).exec(async (err, match) => {
-        console.log(match)
-
-        if (match !== null) {
-            return res.status(406).send('Item has already been added')
-        }
-
-        try {
-            await page.goto(link)
-            await browser.close()
-        } catch (error) {
-            console.error(error)
-            return res.status(404).send('bad link')
-        }
-    
-        const newItem = new Item({
-            name: name,
-            ASIN: asin,
-            link: link
-        }).save(async (error, doc)=> {
-            if (error) return next(err)
-            console.log(doc)
-            await scraper.scrapeItem(doc)
-            res.send('item added')
-        })
-
-        await browser.close()
-    }) 
-  
-})
-
 app.get('/scrapers',async (req,res)=> {
     await scraper.scraper()
     res.send('done')
