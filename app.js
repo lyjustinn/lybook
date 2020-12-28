@@ -54,7 +54,7 @@ passport.use(
                 if (res) {
                     return done(null, user, {msg: "Logged in Successfully"})
                 } else {
-                    console.log('here')
+                    // console.log('here')
                     return done(null, false, {msg: "Incorrect Password"})
                 }
             })
@@ -84,10 +84,9 @@ const job = new CronJob('*/5 * * * * *', ()=> {
             console.log('hello')
             // replace with scraper.scraper() 
         })
-job.start()
+// job.start()
 
 // SET UP ROUTERS AND ROUTES
-
 app.get(("/"), (req, res)=> {
     res.send("hello world")
 })
@@ -100,4 +99,5 @@ app.get('/scrapers',async (req,res)=> {
     res.send('done')
 })
 
+// START APP
 app.listen(PORT, ()=> console.log(`listening on port ${PORT}`))

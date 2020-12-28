@@ -28,7 +28,13 @@ const scrapeItem = async (item)=> {
         if (el3 === undefined && el4 === undefined) {
             await browser.close()
             console.log('scrape failed')
-            throw "No price listed"
+            const current = new Date()
+            item.status = `No price available. Last checked: ${current}`
+            item.save( err => {
+                if (err) throw 'error scraping item'
+            
+                return "No price available currently for this item"
+            })
         }
 
         let newprice = null
@@ -56,6 +62,7 @@ const scrapeItem = async (item)=> {
 
         item.price.push(newprice)
         item.date.push(newdate)
+        item.status = `Price updated`
         
         item.save((err)=>{
             if (err) console.log('error')
@@ -64,6 +71,8 @@ const scrapeItem = async (item)=> {
         })    
 
         browser.close()
+
+        return "Added new price data"
 
     } catch (error) {
         console.error(error)
