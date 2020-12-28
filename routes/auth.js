@@ -8,7 +8,7 @@ const bcrypt = require('bcrypt')
 router.post('/signup', (req, res, next)=> {
     bcrypt.hash(req.body.password, 10, (err, hashedPassword) => {
         if (err) return next(err);
-        
+
         const user = new User({
             email: req.body.email,
             password: hashedPassword,
@@ -16,7 +16,8 @@ router.post('/signup', (req, res, next)=> {
             if (err) {
                 return next(err);
             };
-            res.json(req.body)
+
+            res.json({msg: 'Your account has been created'})
         })
     })
 })
@@ -24,6 +25,7 @@ router.post('/signup', (req, res, next)=> {
 router.post('/login', (req, res, next)=> {
     passport.authenticate('local', {session: false}, (err, user, info)=> {
         if (err || !user) {
+            
             return res.status(400).json({
                 message: "Something went wrong",
                 user: user
@@ -36,13 +38,20 @@ router.post('/login', (req, res, next)=> {
                 res.send(err)
             }
 
-            const token = jwt.sign({user}, 'test')
-
+            const token = jwt.sign({user}, 'test', {expiresIn: '30m'})
+            
+            console.log(user, info)
             return res.json({user, token})
 
         })
     })(req, res)
 
 })
+
+router.use('/ping', passport.authenticate('jwt', {session: false}), (req, res)=> {
+    console.log(req.user)
+    res.json({msg: "Token is valid"})
+})
+
 
 module.exports = router

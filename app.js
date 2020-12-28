@@ -1,11 +1,11 @@
 const express = require('express')
 const cors = require('cors')
-const CronJob = require('cron').CronJob
 const passport = require('passport');
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
+const puppeteer = require('puppeteer')
 require('dotenv').config();
-// require('./passport')
+const scraper = require('./scraper/scraper')
 
 // SET UP VARIABLES FOR USE
 const app = express()
@@ -17,6 +17,7 @@ db.on("error", console.error.bind(console, "mongo connection error"));
 
 const auth = require('./routes/auth')
 const user = require('./routes/userRoutes')
+const items = require('./routes/itemRoutes')
 
 // SET UP MIDDLEWARE
 app.use(cors())
@@ -57,7 +58,8 @@ passport.use(
 )
 
 // code for verifying tokens
-const passportJWT = require('passport-jwt')
+const passportJWT = require('passport-jwt');
+const Item = require('./models/item');
 const JWTStrategy = passportJWT.Strategy;
 const ExtractJWT = passportJWT.ExtractJwt;
 
@@ -68,7 +70,7 @@ passport.use( new JWTStrategy({
     function(jwtPayload, cb) {
         return User.findById(jwtPayload.user._id)
             .then(user => {
-                console.log(jwtPayload)
+                // console.log(jwtPayload)
                 return cb(null, user)
             })
             .catch(err => {
@@ -83,23 +85,76 @@ passport.use( new JWTStrategy({
 app.get(("/"), (req, res)=> {
     res.send("hello world")
 })
-
-app.post(("/track"), (req, res)=> {
-    console.log(req.body)
-
-    if (req.body.msg === "hello") {
-        // var job = new CronJob('*/5 * * * * *', ()=> {
-        //     console.log('hello')
-        // })
-        // job.start()
-        return res.send("hello world")
-    }
-
-    res.send("no hello")
-})
-
 app.use('/user', passport.authenticate('jwt', {session:false}), user)
 
-app.use(express.static('/build'))
+app.use('/items', passport.authenticate('jwt', {session:false}), items)
+
+app.use('/ping', (req, res)=> {
+    res.json({msg: "Request received"})
+})
+
+app.get('/tracker', async (req, res)=> {
+    const browser = await puppeteer.launch()
+    const page = await browser.newPage()
+
+    const url = 'https://www.amazon.ca/Windows-10-Home-Bit-USB/dp/B08Q8P4R1X/ref=zg_bs_software_home_3?_encoding=UTF8&psc=1&refRID=6M8ZG9J1B2E6WC10GCPF'
+    
+    await page.goto(url)
+
+    const [el] = await page.$x('//*[@id="landingImage"]')
+    const src = await el.getProperty('src')
+    const srcTxt = await src.jsonValue()
+
+    // console.log(srcTxt)
+
+    const [el2] = await page.$x('//*[@id="productTitle"]')
+    const txt = await el2.getProperty('textContent')
+    const rawText = await txt.jsonValue()
+
+    // console.log(rawText)
+
+    const [el3] = await page.$x('//*[@id="priceblock_ourprice"]')
+    const txt2 = await el3.getProperty('textContent')
+    const price = await txt2.jsonValue()
+
+    await browser.close()
+
+    console.log({srcTxt, rawText, price})
+
+    res.send('tracking started')
+})
+
+app.post('/item/new', async (req, res)=> {
+
+    const {asin, name, link} = req.body
+
+    console.log({asin, name, link})
+
+    const browser = await puppeteer.launch()
+    const page = await browser.newPage()
+    
+    try {
+        await page.goto(link)
+    } catch (error) {
+        console.error(error)
+        return res.status(404).send('bad link')
+    }
+
+    const newItem = new Item({
+        name: name,
+        ASIN: asin,
+        link: link
+    }).save((error)=> {
+        if (error) return next(err)
+
+        res.send('item added')
+    })
+  
+})
+
+app.get('/scrapers',async (req,res)=> {
+    await scraper()
+    res.send('done')
+})
 
 app.listen(PORT, ()=> console.log(`listening on port ${PORT}`))
