@@ -89,10 +89,6 @@ app.use('/user', passport.authenticate('jwt', {session:false}), user)
 
 app.use('/items', passport.authenticate('jwt', {session:false}), items)
 
-app.use('/ping', (req, res)=> {
-    res.json({msg: "Request received"})
-})
-
 app.get('/tracker', async (req, res)=> {
     const browser = await puppeteer.launch()
     const page = await browser.newPage()
@@ -132,23 +128,33 @@ app.post('/item/new', async (req, res)=> {
 
     const browser = await puppeteer.launch()
     const page = await browser.newPage()
+
+    await Item.findOne({ASIN: asin}).exec(async (err, match) => {
+        console.log(match)
+
+        if (match !== null) {
+            return res.status(406).send('Item has already been added')
+        }
+
+        try {
+            await page.goto(link)
+        } catch (error) {
+            console.error(error)
+            return res.status(404).send('bad link')
+        }
     
-    try {
-        await page.goto(link)
-    } catch (error) {
-        console.error(error)
-        return res.status(404).send('bad link')
-    }
+        const newItem = new Item({
+            name: name,
+            ASIN: asin,
+            link: link
+        }).save((error)=> {
+            if (error) return next(err)
+    
+            res.send('item added')
+        })
 
-    const newItem = new Item({
-        name: name,
-        ASIN: asin,
-        link: link
-    }).save((error)=> {
-        if (error) return next(err)
-
-        res.send('item added')
-    })
+        await browser.close()
+    }) 
   
 })
 
