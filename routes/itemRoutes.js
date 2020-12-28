@@ -1,24 +1,10 @@
 const express = require('express')
 const puppeteer = require('puppeteer')
-const CronJob = require('cron').CronJob
 const Item = require('../models/item')
 const User = require('../models/user')
+const scraper = require('../scraper/scraper')
 
 const router = express.Router()
-
-// router.post(("/track"), (req, res)=> {
-//     console.log(req.body)
-
-//     if (req.body.msg === "hello") {
-//         // var job = new CronJob('*/5 * * * * *', ()=> {
-//         //     console.log('hello')
-//         // })
-//         // job.start()
-//         return res.send("hello world")
-//     }
-
-//     res.send("no hello")
-// })
 
 router.post('/newItem', async (req, res, next)=> {
     if (!req.body) return res.status(400).send(`No item information sent`)
@@ -37,8 +23,13 @@ router.post('/newItem', async (req, res, next)=> {
             return res.json({item: match, msg: "This item has already been tracked, importing history..."})
         }
 
+        let imgLink = null
         try {
             await page.goto(link)
+            const [el] = await page.$x('//*[@id="landingImage"]')
+            const src = await el.getProperty('src')
+            imgLink = await src.jsonValue()
+
             await browser.close()
         } catch (error) {
             console.error(error)
@@ -48,7 +39,8 @@ router.post('/newItem', async (req, res, next)=> {
         const newItem = new Item({
             name: name,
             ASIN: asin,
-            link: link
+            link: link,
+            image: imgLink
         }).save(async (error, doc)=> {
             if (error) return next(err)
             console.log(doc)

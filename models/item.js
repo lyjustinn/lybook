@@ -7,6 +7,7 @@ const Item = mongoose.model(
         link: { type: String, required: true},
         ASIN: { type: String, required: true},
         name: { type: String, required:true},
+        image: { type:String, required: true},
         date: [{ type: Date, required: true, default: Date.now()}],
         price: [{ type: Number, required: true}], 
     })

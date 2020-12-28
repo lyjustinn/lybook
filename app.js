@@ -1,15 +1,17 @@
 const express = require('express')
 const cors = require('cors')
 const passport = require('passport');
-const mongoose = require('mongoose')
+const passportJWT = require('passport-jwt');
 const bcrypt = require('bcrypt')
-const puppeteer = require('puppeteer')
-require('dotenv').config();
 const scraper = require('./scraper/scraper')
+const CronJob = require('cron').CronJob
+const mongoose = require('mongoose')
+require('dotenv').config();
 
 // SET UP VARIABLES FOR USE
 const app = express()
 const PORT = 8888
+
 const mongoDB = process.env.MONGO_DB
 mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true});
 const db = mongoose.connection;
@@ -29,6 +31,9 @@ app.use('/auth', auth)
 // SET UP PASSPORT
 const LocalStrategy = require('passport-local').Strategy
 const User = require('./models/user')
+
+const JWTStrategy = passportJWT.Strategy;
+const ExtractJWT = passportJWT.ExtractJwt;
 
 passport.use(
     new LocalStrategy({
@@ -57,12 +62,6 @@ passport.use(
     })
 )
 
-// code for verifying tokens
-const passportJWT = require('passport-jwt');
-const Item = require('./models/item');
-const JWTStrategy = passportJWT.Strategy;
-const ExtractJWT = passportJWT.ExtractJwt;
-
 passport.use( new JWTStrategy({
         jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
         secretOrKey: 'test'
@@ -80,6 +79,13 @@ passport.use( new JWTStrategy({
     
 ))
 
+// SET UP CRON JOB
+const job = new CronJob('*/5 * * * * *', ()=> {
+            console.log('hello')
+            // replace with scraper.scraper() 
+        })
+job.start()
+
 // SET UP ROUTERS AND ROUTES
 
 app.get(("/"), (req, res)=> {
@@ -88,37 +94,6 @@ app.get(("/"), (req, res)=> {
 app.use('/user', passport.authenticate('jwt', {session:false}), user)
 
 app.use('/items', passport.authenticate('jwt', {session:false}), items)
-
-app.get('/tracker', async (req, res)=> {
-    const browser = await puppeteer.launch()
-    const page = await browser.newPage()
-
-    const url = 'https://www.amazon.ca/Windows-10-Home-Bit-USB/dp/B08Q8P4R1X/ref=zg_bs_software_home_3?_encoding=UTF8&psc=1&refRID=6M8ZG9J1B2E6WC10GCPF'
-    
-    await page.goto(url)
-
-    const [el] = await page.$x('//*[@id="landingImage"]')
-    const src = await el.getProperty('src')
-    const srcTxt = await src.jsonValue()
-
-    // console.log(srcTxt)
-
-    const [el2] = await page.$x('//*[@id="productTitle"]')
-    const txt = await el2.getProperty('textContent')
-    const rawText = await txt.jsonValue()
-
-    // console.log(rawText)
-
-    const [el3] = await page.$x('//*[@id="priceblock_ourprice"]')
-    const txt2 = await el3.getProperty('textContent')
-    const price = await txt2.jsonValue()
-
-    await browser.close()
-
-    console.log({srcTxt, rawText, price})
-
-    res.send('tracking started')
-})
 
 app.get('/scrapers',async (req,res)=> {
     await scraper.scraper()
