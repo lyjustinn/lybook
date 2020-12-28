@@ -7,18 +7,17 @@ const scraper = require('../scraper/scraper')
 const router = express.Router()
 
 router.get('/:id', async (req, res, next)=> {
+    console.log(req.params)
+
     Item.findById(req.params.id)
         .exec( (err, itemMatch)=> {
             if (err) return next(err)
 
             if (!itemMatch) return res.status(404).send("Couldn't find the item you were looking for")
-        })
-        .catch( err => {
-            console.error(err)
-            next(err)
-        })
 
-    res.send('request recieved')
+            console.log(itemMatch)
+            return res.json(itemMatch)
+        })
 })
 
 router.post('/newItem', async (req, res, next)=> {
@@ -34,7 +33,7 @@ router.post('/newItem', async (req, res, next)=> {
     const browser = await puppeteer.launch()
     const page = await browser.newPage()
 
-    await Item.findOne({ASIN: asin}).exec(async (err, match) => {
+    Item.findOne({ASIN: asin}).exec(async (err, match) => {
         console.log(match)
 
         if (match !== null) {
@@ -65,10 +64,7 @@ router.post('/newItem', async (req, res, next)=> {
             await scraper.scrapeItem(doc)
             return res.json({item: doc, msg: "Created a new item, initializing history..."})
         })
-    }).catch((err)=> {
-        console.error(err)
-        next(err)
-    }) 
+    })
 })
 
 router.delete('/deleteItem', async (req, res, next)=> {
