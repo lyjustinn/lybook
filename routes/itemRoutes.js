@@ -9,6 +9,8 @@ const router = express.Router()
 router.get('/:id', async (req, res, next)=> {
     console.log(req.params)
 
+    if (!req.user.items.includes(req.params.id)) return res.status(403).send('You cannot view items you are not tracking')
+
     Item.findById(req.params.id)
         .exec( (err, itemMatch)=> {
             if (err) return next(err)

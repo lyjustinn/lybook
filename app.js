@@ -30,7 +30,7 @@ const corsOptions = {
     allowedHeaders: ['Content-type', 'Authorization'],
 }
 
-app.use(cors(corsOptions))
+app.use(cors())
 
 // SET UP OTHER MIDDLEWARE
 app.use(express.json())

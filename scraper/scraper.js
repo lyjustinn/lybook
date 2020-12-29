@@ -33,8 +33,9 @@ const scrapeItem = async (item)=> {
             await item.save( err => {
                 if (err) throw 'error scraping item'
             
-                return "No price available currently for this item"
+                return
             })
+            return "No price available currently for this item"
         }
 
         let newprice = null
@@ -73,8 +74,7 @@ const scrapeItem = async (item)=> {
 
     } catch (error) {
         console.error(error)
-
-        item.status = `The posted link is no longer available, please update the item link`
+        item.status = `The posted link is no longer available`
 
         item.save((err)=>{
             if (err) console.log('error')
