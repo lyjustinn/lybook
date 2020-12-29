@@ -66,16 +66,23 @@ const scrapeItem = async (item)=> {
         
         item.save((err)=>{
             if (err) console.log('error')
-
+            browser.close()
             console.log('saved')
+            return "Added new price data"
         })    
-
-        browser.close()
-
-        return "Added new price data"
 
     } catch (error) {
         console.error(error)
+
+        item.status = `The posted link is no longer available, please update the item link`
+
+        item.save((err)=>{
+            if (err) console.log('error')
+
+            console.log('saved')
+
+            return "Scrape failed"
+        })    
     }
 }
 

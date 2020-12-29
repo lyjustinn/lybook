@@ -28,7 +28,7 @@ router.post('/newItem', async (req, res, next)=> {
         || name === undefined
         || link === undefined) 
         
-        return res.status(400).send(`No item information sent`)
+        return res.status(400).send(`Missing information`)
 
     const browser = await puppeteer.launch()
     const page = await browser.newPage()
@@ -66,6 +66,26 @@ router.post('/newItem', async (req, res, next)=> {
         })
     })
 })
+
+router.put('/update', async(req, res, next)=> {
+    if (!req.body.newLink) return res.status(400).send(`No new link sent`)
+
+    const browser = await puppeteer.launch()
+    const page = await browser.newPage()
+
+    try {
+        await page.goto(link)
+    } catch (err) {
+        return res.status(404).send(`Couldn't find the page you were looking for`)
+    }
+
+    Item.findOneAndUpdate({_id: req.body.itemid}, {link: req.body.newLink})
+        .exec( err => {
+            if (err) return next(err)
+
+            return res.send('Item updated')
+        })
+}) 
 
 router.delete('/deleteItem', async (req, res, next)=> {
     if (!req.body.itemid) return res.status(400).send(`No item id sent`)
