@@ -103,7 +103,6 @@ router.delete('/deleteItem', async (req, res, next)=> {
         }
         if (!userMatch) {
             await Item.deleteOne({_id: req.body.itemid})
-            console.log('hererere')
             return res.json({msg: `Deleted item with id ${req.body.itemid}`})
         }
 
