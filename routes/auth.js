@@ -40,8 +40,7 @@ router.post('/login', (req, res, next)=> {
 
             const token = jwt.sign({user}, 'test', {expiresIn: '30m'})
             
-            console.log(user, info)
-            return res.json({user, token})
+            return res.json({token})
 
         })
     })(req, res)
@@ -49,7 +48,6 @@ router.post('/login', (req, res, next)=> {
 })
 
 router.use('/ping', passport.authenticate('jwt', {session: false}), (req, res)=> {
-    console.log(req.user)
     res.json({msg: "Token is valid"})
 })
 

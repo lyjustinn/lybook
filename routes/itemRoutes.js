@@ -7,7 +7,6 @@ const scraper = require('../scraper/scraper')
 const router = express.Router()
 
 router.get('/:id', async (req, res, next)=> {
-    console.log(req.params)
 
     if (!req.user.items.includes(req.params.id)) return res.status(403).json({msg: 'You cannot view items you are not tracking'})
 
@@ -17,14 +16,12 @@ router.get('/:id', async (req, res, next)=> {
 
             if (!itemMatch) return res.status(404).json({msg: "Couldn't find the item you were looking for"})
 
-            console.log(itemMatch)
             return res.json(itemMatch)
         })
 })
 
 router.post('/newItem', async (req, res, next)=> {
     const {asin, name, link} = req.body
-    console.log({asin, name, link})
 
     if (asin === undefined
         || name === undefined
@@ -36,7 +33,6 @@ router.post('/newItem', async (req, res, next)=> {
     const page = await browser.newPage()
 
     Item.findOne({ASIN: asin}).exec(async (err, match) => {
-        console.log(match)
 
         if (match !== null) {
             return res.json({item: match, msg: "This item has already been tracked, importing history..."})
@@ -62,7 +58,6 @@ router.post('/newItem', async (req, res, next)=> {
             image: imgLink
         }).save(async (error, doc)=> {
             if (error) return next(err)
-            console.log(doc)
             await scraper.scrapeItem(doc)
             return res.json({item: doc, msg: "Created a new item, initializing history..."})
         })
@@ -96,7 +91,6 @@ router.delete('/deleteItem', async (req, res, next)=> {
         User.findOne({ items: req.body.itemid}),
         Item.findById(req.body.itemid)
     ]).then ( async ([userMatch, itemMatch])=> {
-        console.log({userMatch, itemMatch})
 
         if (!itemMatch) {
             return res.status(406).json({msg: `Couldn't find an item with id ${req.body.itemid}`})

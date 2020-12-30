@@ -12,12 +12,10 @@ const scraper = async ()=> {
 const scrapeItem = async (item)=> {
     if (!item) return
 
-    // console.log(item)
     const browser = await puppeteer.launch()
     const page = await browser.newPage()
 
     const url = item.link    
-    console.log(item)
     
     try {
         await page.goto(url)
@@ -27,7 +25,6 @@ const scrapeItem = async (item)=> {
 
         if (el3 === undefined && el4 === undefined) {
             await browser.close()
-            console.log('scrape failed')
             const current = new Date()
             item.status = `No price available. Last checked: ${current}`
             await item.save( err => {
@@ -59,16 +56,13 @@ const scrapeItem = async (item)=> {
 
         let newdate = new Date()
 
-        console.log({newprice, newdate})
-
         item.price.push(newprice)
         item.date.push(newdate)
         item.status = `Price updated`
         
         item.save((err)=>{
-            if (err) console.log('error')
+            if (err) console.error(err)
             browser.close()
-            console.log('saved')
             return "Added new price data"
         })    
 
@@ -77,9 +71,7 @@ const scrapeItem = async (item)=> {
         item.status = `The posted link is no longer available`
 
         item.save((err)=>{
-            if (err) console.log('error')
-
-            console.log('saved')
+            if (err) console.error('error')
 
             return "Scrape failed"
         })    

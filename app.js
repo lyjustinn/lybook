@@ -56,7 +56,6 @@ passport.use(
                 return done(err);
             }
             if (!user) {
-                console.log(password);
                 return done(null, false, {msg: 'Incorrect Username!'});
             }
             
@@ -64,7 +63,6 @@ passport.use(
                 if (res) {
                     return done(null, user, {msg: "Logged in Successfully"})
                 } else {
-                    // console.log('here')
                     return done(null, false, {msg: "Incorrect Password"})
                 }
             })
@@ -79,7 +77,6 @@ passport.use( new JWTStrategy({
     function(jwtPayload, cb) {
         return User.findById(jwtPayload.user._id)
             .then(user => {
-                // console.log(jwtPayload)
                 return cb(null, user)
             })
             .catch(err => {

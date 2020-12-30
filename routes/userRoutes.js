@@ -15,15 +15,12 @@ router.get("/dashboard/", (req, res)=> {
         .exec((err, user) => {
             if (err) { return next(err)}
 
-            console.log(user)
-
             res.send(user.items)
         })
 
 })
 
 router.put("/addItem/", (req, res, next)=> {
-    console.log(req.body)
 
     if (!req.body.itemid) return res.status(400).json({msg: `No item id sent`})
 
