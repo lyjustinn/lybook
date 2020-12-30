@@ -9,13 +9,13 @@ const router = express.Router()
 router.get('/:id', async (req, res, next)=> {
     console.log(req.params)
 
-    if (!req.user.items.includes(req.params.id)) return res.status(403).send('You cannot view items you are not tracking')
+    if (!req.user.items.includes(req.params.id)) return res.status(403).json({msg: 'You cannot view items you are not tracking'})
 
     Item.findById(req.params.id)
         .exec( (err, itemMatch)=> {
             if (err) return next(err)
 
-            if (!itemMatch) return res.status(404).send("Couldn't find the item you were looking for")
+            if (!itemMatch) return res.status(404).json({msg: "Couldn't find the item you were looking for"})
 
             console.log(itemMatch)
             return res.json(itemMatch)
@@ -52,7 +52,7 @@ router.post('/newItem', async (req, res, next)=> {
             await browser.close()
         } catch (error) {
             console.error(error)
-            return res.status(404).send('bad link')
+            return res.status(404).json({msg: 'bad link'})
         }
     
         const newItem = new Item({
@@ -70,7 +70,7 @@ router.post('/newItem', async (req, res, next)=> {
 })
 
 router.put('/update', async(req, res, next)=> {
-    if (!req.body.newLink) return res.status(400).send(`No new link sent`)
+    if (!req.body.newLink) return res.status(400).json({msg: `No new link sent`})
 
     const browser = await puppeteer.launch()
     const page = await browser.newPage()
@@ -78,19 +78,19 @@ router.put('/update', async(req, res, next)=> {
     try {
         await page.goto(link)
     } catch (err) {
-        return res.status(404).send(`Couldn't find the page you were looking for`)
+        return res.status(404).json({msg: `Couldn't find the page you were looking for`})
     }
 
     Item.findOneAndUpdate({_id: req.body.itemid}, {link: req.body.newLink})
         .exec( err => {
             if (err) return next(err)
 
-            return res.send('Item updated')
+            return res.json({msg: 'Item updated'})
         })
 }) 
 
 router.delete('/deleteItem', async (req, res, next)=> {
-    if (!req.body.itemid) return res.status(400).send(`No item id sent`)
+    if (!req.body.itemid) return res.status(400).json({msg: `No item id sent`})
 
     Promise.all([
         User.findOne({ items: req.body.itemid}),
@@ -99,14 +99,15 @@ router.delete('/deleteItem', async (req, res, next)=> {
         console.log({userMatch, itemMatch})
 
         if (!itemMatch) {
-            return res.status(406).send(`Couldn't find an item with id ${req.body.itemid}`)
+            return res.status(406).json({msg: `Couldn't find an item with id ${req.body.itemid}`})
         }
         if (!userMatch) {
             await Item.deleteOne({_id: req.body.itemid})
-            return res.send(`Deleted item with id ${req.body.itemid}`)
+            console.log('hererere')
+            return res.json({msg: `Deleted item with id ${req.body.itemid}`})
         }
 
-        return res.status(406).send('This item is currently being tracked by one or more users, delete request refused')
+        return res.status(406).json({msg: 'This item is currently being tracked by one or more users, delete request refused'})
     }).catch ((err) =>{
         next(err)
     })

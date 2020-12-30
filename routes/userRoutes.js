@@ -25,38 +25,38 @@ router.get("/dashboard/", (req, res)=> {
 router.put("/addItem/", (req, res, next)=> {
     console.log(req.body)
 
-    if (!req.body.itemid) return res.status(400).send(`No item id sent`)
+    if (!req.body.itemid) return res.status(400).json({msg: `No item id sent`})
 
     Item.findById(req.body.itemid)
         .exec( (err, match)=> {
             if (err) return next(err)
-            if (match === undefined || match === null) return res.status(404).send(`Couldn't find the item you wanted to add`)
+            if (match === undefined || match === null) return res.status(404).json({msg: `Couldn't find the item you wanted to add`})
 
             if (req.user.items.includes(match._id)) {
-                return res.send(`You have already added this item`)
+                return res.json({msg: `You have already added this item`})
             }            
 
             req.user.items.push(match)
             req.user.save((err)=> {
                 if (err) return next(err)
 
-                return res.send('added the item')
+                return res.json({msg: 'added the item'})
             })
         })
 })
 
 router.put("/removeItem/", (req, res)=> {
-    if (!req.body.itemid) return res.status(400).send(`No item id sent`)
+    if (!req.body.itemid) return res.status(400).json({msg: `No item id sent`})
 
     if (req.user.items.includes(req.body.itemid) === false) {
-        return res.status(406).send(`The authenticated user is not tracking this item`)
+        return res.status(406).json({msg: `The authenticated user is not tracking this item`})
     }     
 
     req.user.items.pull(req.body.itemid)
     req.user.save((err)=> {
         if (err) return next(err)
 
-        return res.send(req.body.itemid)
+        return res.json({id: req.body.itemid})
     })
 })
 

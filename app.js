@@ -30,7 +30,7 @@ const corsOptions = {
     allowedHeaders: ['Content-type', 'Authorization'],
 }
 
-app.use(cors())
+app.use(cors(corsOptions))
 
 // SET UP OTHER MIDDLEWARE
 app.use(express.json())
@@ -90,11 +90,11 @@ passport.use( new JWTStrategy({
 ))
 
 // SET UP CRON JOB
-const job = new CronJob('*/5 * * * * *', ()=> {
-            console.log('hello')
+const job = new CronJob('0 0 */1 * * *', ()=> {
+            scraper.scraper()
             // replace with scraper.scraper() 
         })
-// job.start()
+job.start()
 
 // SET UP ROUTERS AND ROUTES
 app.get(("/"), (req, res)=> {
