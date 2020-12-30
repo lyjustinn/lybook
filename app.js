@@ -1,4 +1,5 @@
 const express = require('express')
+const morgan = require('morgan')
 const cors = require('cors')
 const passport = require('passport');
 const passportJWT = require('passport-jwt');
@@ -36,7 +37,8 @@ app.use(cors(corsOptions))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false}));
 app.use(passport.initialize());
-app.use('/auth', auth)
+
+app.use(morgan('common'))
 
 // SET UP PASSPORT
 const LocalStrategy = require('passport-local').Strategy
@@ -94,9 +96,8 @@ const job = new CronJob('0 0 */1 * * *', ()=> {
 job.start()
 
 // SET UP ROUTERS AND ROUTES
-app.get(("/"), (req, res)=> {
-    res.send("hello world")
-})
+app.use('/auth', auth)
+
 app.use('/user', passport.authenticate('jwt', {session:false}), user)
 
 app.use('/items', passport.authenticate('jwt', {session:false}), items)
@@ -104,6 +105,11 @@ app.use('/items', passport.authenticate('jwt', {session:false}), items)
 app.get('/scrapers',async (req,res)=> {
     await scraper.scraper()
     res.send('done')
+})
+
+app.use((err, res, req, next)=> {
+    console.error(err)
+    res.status(500).json({msg: "Something went wrong"})
 })
 
 // START APP
