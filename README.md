@@ -3,7 +3,7 @@ REST api for the LyBook project that allows users to track item prices on Amazon
 
 ### Depedencies for Development and Opertion
 
-#### Dependecies:
+#### Dependencies:
 * bcrypt: ^5.0.0
 * cors: ^2.8.5
 * cron: ^1.8.2
@@ -17,7 +17,7 @@ REST api for the LyBook project that allows users to track item prices on Amazon
 * passport-local: ^1.0.0
 * puppeteer: ^5.5.0
 
-#### Dev Depencies
+#### Dev Dependencies
 * nodemon": ^2.0.6
 
 ### Installation
