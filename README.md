@@ -37,3 +37,6 @@ As of this moment, this server has not been deployed on Heroku.
 
 The server will automatically updated prices at an hour basis using cron jobs, however this update frequency can be adjusted if desired. However, this also means that the 
 server must be run continually to keep updated prices in the database. 
+
+### Credits
+Authentication Scheme sourced from: https://dev.to/_arpy/learn-using-jwt-with-passport-authentication-22n8
